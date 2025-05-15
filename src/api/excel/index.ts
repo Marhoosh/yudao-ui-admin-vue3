@@ -6,7 +6,14 @@ import request from '@/config/axios'
  * @returns 返回匹配结果Excel文件
  */
 export const matchExcel = (data: FormData) => {
-  return request.post({ url: '/excel/match', data, responseType: 'blob' })
+  return request.post({
+    url: '/excel/match',
+    data,
+    responseType: 'blob',
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
 }
 
 /**
