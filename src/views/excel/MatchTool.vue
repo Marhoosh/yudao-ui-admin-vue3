@@ -82,33 +82,17 @@
     <el-card class="mb-16px">
       <div class="flex gap-16px items-center">
         <el-button type="primary" :loading="matching" @click="handleMatch">执行匹配</el-button>
-        <el-button type="success" :disabled="!matchResult.length" @click="handleExport">下载结果EXCEL</el-button>
         <el-alert v-if="matchError" type="error" :closable="false" show-icon class="ml-16px">{{ matchError }}</el-alert>
       </div>
     </el-card>
 
-    <!-- 4. 匹配结果预览 -->
-    <!-- <el-card>
-      <div class="mb-12px font-bold">4. 匹配结果预览</div>
-      <el-table :data="matchResult" border size="small">
-        <el-table-column prop="reportFile" label="报表文件" />
-        <el-table-column prop="patientName" label="患者姓名" />
-        <el-table-column prop="status" label="匹配状态">
-          <template #default="{ row }">
-            <el-tag v-if="row.status === '匹配'" type="success">✔ 匹配</el-tag>
-            <el-tag v-else type="danger">✖ 未匹配</el-tag>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card> -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { matchExcel } from '@/api/excel'
-import { Document } from '@element-plus/icons-vue'
 import download from '@/utils/download'
 
 // 文件上传相关
@@ -116,7 +100,6 @@ const reportFileList = ref<any[]>([])
 const patientFileList = ref<any[]>([])
 
 // 文件参数设置
-const tabType = ref<'unify' | 'single'>('unify')
 const unifyReportSheet = ref('5.3')
 const unifyReportCol = ref('C')
 const unifyPatientSheet = ref('Sheet1')
@@ -126,7 +109,6 @@ const unifyPatientCol = ref('A')
 const fileSettings = ref<any[]>([])
 
 // 匹配结果
-const matchResult = ref<any[]>([])
 const matching = ref(false)
 const matchError = ref('')
 
@@ -180,27 +162,6 @@ function handleRemovePatient(file, fileList) {
   patientFileList.value = fileList
 }
 
-// 下载文件工具函数
-function downloadFile(res, fileName) {
-  // 检查响应是否已经是Blob类型
-  const blob = res instanceof Blob ? res : new Blob([res], {
-    // 正确设置Excel文件的MIME类型
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  })
-  // 创建新的URL并指向blob对象
-  const url = window.URL.createObjectURL(blob)
-  // 创建a标签，设置href属性为blob URL，设置download属性后点击
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', fileName || '匹配结果.xlsx')
-  document.body.appendChild(link)
-  link.click()
-  // 移除a标签
-  document.body.removeChild(link)
-  // 释放URL对象
-  window.URL.revokeObjectURL(url)
-}
-
 // 执行匹配
 async function handleMatch() {
   if (!reportFileList.value.length || !patientFileList.value.length) {
@@ -241,32 +202,9 @@ async function handleMatch() {
     // 调用匹配接口
     const res = await matchExcel(formData)
     download.excel(res, '匹配结果.xlsx')
-    console.log(res)
-    //
-    //
-    //
-    // // 处理响应，从完整响应中提取data
-    // // const res = response.data
-    //
-    // // 检查响应是否为有效的Excel文件
-    // if (res && (res instanceof Blob || (typeof res === 'object' && res.type))) {
-    //   // 下载返回的Excel文件
-    //   downloadFile(res, '匹配结果.xlsx')
-    //
-    //   // 显示成功消息
-    //   ElMessage.success('匹配成功，已自动下载结果文件')
-    //
-    //   // 设置匹配结果，让"下载结果EXCEL"按钮可用
-    //   matchResult.value = reportFileList.value.map((file, index) => ({
-    //     reportFile: file.name,
-    //     patientName: index % 2 === 0 ? `患者${index+1}` : '',
-    //     status: index % 2 === 0 ? '匹配' : '未匹配'
-    //   }))
-    // } else {
-    //   // 响应不是有效的Blob，可能是错误信息
-    //   matchError.value = '匹配失败，返回的不是有效的Excel文件'
-    //   console.error('匹配响应格式错误', res)
-    // }
+
+    ElMessage.success('匹配成功，已自动下载结果文件')
+
   } catch (e) {
     console.error('匹配出错', e)
     matchError.value = '匹配失败，请检查参数和文件后重试'
@@ -275,53 +213,7 @@ async function handleMatch() {
   }
 }
 
-// 导出结果
-async function handleExport() {
-  if (!matchResult.value.length) {
-    ElMessage.warning('暂无匹配结果可导出')
-    return
-  }
-  
-  try {
-    // 直接调用匹配API，因为接口本身就返回Excel文件
-    // 如果有专门的导出接口，可以改用exportMatchResult
-    const formData = new FormData()
-    
-    // 添加患者库信息
-    const patientIdx = fileSettings.value.findIndex(f => f.type === '患者库')
-    if (patientIdx !== -1) {
-      formData.append('patientFile', patientFileList.value[0].raw)
-      formData.append('patientSheetName', fileSettings.value[patientIdx].sheetName)
-      formData.append('patientColumnIndex', fileSettings.value[patientIdx].col)
-    }
-    
-    // 添加报表信息
-    const reportSettings = fileSettings.value.filter(f => f.type === '报表')
-    reportFileList.value.forEach((file, idx) => {
-      if (idx < reportSettings.length) {
-        formData.append(`reportConfigs[${idx}].reportFile`, file.raw)
-        formData.append(`reportConfigs[${idx}].sheetName`, reportSettings[idx].sheetName)
-        formData.append(`reportConfigs[${idx}].columnIndex`, reportSettings[idx].col)
-      }
-    })
-    
-    const response = await matchExcel(formData)
-    const res = response.data
-    
-    // 检查响应是否为有效的Excel文件
-    if (res && (res instanceof Blob || (typeof res === 'object' && res.type))) {
-      downloadFile(res, '匹配结果.xlsx')
-      ElMessage.success('导出成功')
-    } else {
-      // 响应不是有效的Blob，可能是错误信息
-      ElMessage.error('导出失败，返回的不是有效的Excel文件')
-      console.error('导出响应格式错误', res)
-    }
-  } catch (e) {
-    console.error('导出出错', e)
-    ElMessage.error('导出失败，请重试')
-  }
-}
+
 </script>
 
 <style scoped>
