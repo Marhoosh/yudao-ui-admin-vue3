@@ -16,14 +16,3 @@ export const matchExcel = (data: FormData) => {
   })
 }
 
-/**
- * 下载匹配结果Excel文件
- * @param params 参数
- * @returns 返回Excel文件
- */
-export const exportMatchResult = (params: any) => {
-  return request.download({
-    url: '/excel/match/export',
-    params
-  })
-} 
