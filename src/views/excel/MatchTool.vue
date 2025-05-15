@@ -107,6 +107,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { matchExcel, exportMatchResult } from '@/api/excel'
+import { Document } from '@element-plus/icons-vue'
 
 // 文件上传相关
 const reportFileList = ref<any[]>([])
@@ -177,6 +179,26 @@ function handleRemovePatient(file, fileList) {
   patientFileList.value = fileList
 }
 
+// 下载文件工具函数
+function downloadFile(res, fileName) {
+  // 创建Blob对象，设置文件类型
+  const blob = new Blob([res], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  })
+  // 创建新的URL并指向blob对象
+  const url = window.URL.createObjectURL(blob)
+  // 创建a标签，设置href属性为blob URL，设置download属性后点击
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', fileName || '匹配结果.xlsx')
+  document.body.appendChild(link)
+  link.click()
+  // 移除a标签
+  document.body.removeChild(link)
+  // 释放URL对象
+  window.URL.revokeObjectURL(url)
+}
+
 // 执行匹配
 async function handleMatch() {
   if (!reportFileList.value.length || !patientFileList.value.length) {
@@ -195,35 +217,85 @@ async function handleMatch() {
   try {
     // 构造FormData
     const formData = new FormData()
-    reportFileList.value.forEach((file, idx) => {
-      formData.append('reportFiles', file.raw)
-      formData.append(`reportSheetNames`, fileSettings.value[idx].sheetName)
-      formData.append(`reportCols`, fileSettings.value[idx].col)
-    })
+    
+    // 添加患者库信息
     const patientIdx = fileSettings.value.findIndex(f => f.type === '患者库')
-    formData.append('patientFile', patientFileList.value[0].raw)
-    formData.append('patientSheetName', fileSettings.value[patientIdx].sheetName)
-    formData.append('patientCol', fileSettings.value[patientIdx].col)
-    // TODO: 替换为实际后端接口
-    // const res = await api.matchExcel(formData)
-    // matchResult.value = res.data
-    // mock数据
-    matchResult.value = [
-      { reportFile: reportFileList.value[0].name, patientName: '张三', status: '匹配' },
-      { reportFile: reportFileList.value[1]?.name || '', patientName: '李四', status: '未匹配' }
-    ]
-    ElMessage.success('匹配完成')
+    if (patientIdx !== -1) {
+      formData.append('patientFile', patientFileList.value[0].raw)
+      formData.append('patientSheetName', fileSettings.value[patientIdx].sheetName)
+      formData.append('patientColumnIndex', fileSettings.value[patientIdx].col)
+    }
+    
+    // 添加报表信息
+    const reportSettings = fileSettings.value.filter(f => f.type === '报表')
+    reportFileList.value.forEach((file, idx) => {
+      if (idx < reportSettings.length) {
+        formData.append(`reportConfigs[${idx}].reportFile`, file.raw)
+        formData.append(`reportConfigs[${idx}].sheetName`, reportSettings[idx].sheetName)
+        formData.append(`reportConfigs[${idx}].columnIndex`, reportSettings[idx].col)
+      }
+    })
+    
+    // 调用匹配接口
+    const res = await matchExcel(formData)
+    // 下载返回的Excel文件
+    downloadFile(res, '匹配结果.xlsx')
+    
+    // 显示成功消息
+    ElMessage.success('匹配成功，已自动下载结果文件')
+    
+    // 这里是假数据展示，实际应根据需求调整
+    // 如果需要展示匹配结果预览，可能需要额外的API接口获取匹配结果数据
+    matchResult.value = reportFileList.value.map((file, index) => ({
+      reportFile: file.name,
+      patientName: index % 2 === 0 ? `患者${index+1}` : '',
+      status: index % 2 === 0 ? '匹配' : '未匹配'
+    }))
   } catch (e) {
-    matchError.value = '匹配失败，请重试'
+    console.error('匹配出错', e)
+    matchError.value = '匹配失败，请检查参数和文件后重试'
   } finally {
     matching.value = false
   }
 }
 
 // 导出结果
-function handleExport() {
-  // TODO: 调用后端导出接口
-  ElMessage.info('导出功能待接入后端')
+async function handleExport() {
+  if (!matchResult.value.length) {
+    ElMessage.warning('暂无匹配结果可导出')
+    return
+  }
+  
+  try {
+    // 直接调用匹配API，因为接口本身就返回Excel文件
+    // 如果有专门的导出接口，可以改用exportMatchResult
+    const formData = new FormData()
+    
+    // 添加患者库信息
+    const patientIdx = fileSettings.value.findIndex(f => f.type === '患者库')
+    if (patientIdx !== -1) {
+      formData.append('patientFile', patientFileList.value[0].raw)
+      formData.append('patientSheetName', fileSettings.value[patientIdx].sheetName)
+      formData.append('patientColumnIndex', fileSettings.value[patientIdx].col)
+    }
+    
+    // 添加报表信息
+    const reportSettings = fileSettings.value.filter(f => f.type === '报表')
+    reportFileList.value.forEach((file, idx) => {
+      if (idx < reportSettings.length) {
+        formData.append(`reportConfigs[${idx}].reportFile`, file.raw)
+        formData.append(`reportConfigs[${idx}].sheetName`, reportSettings[idx].sheetName)
+        formData.append(`reportConfigs[${idx}].columnIndex`, reportSettings[idx].col)
+      }
+    })
+    
+    const res = await matchExcel(formData)
+    downloadFile(res, '匹配结果.xlsx')
+    ElMessage.success('导出成功')
+  } catch (e) {
+    console.error('导出出错', e)
+    ElMessage.error('导出失败，请重试')
+  }
 }
 </script>
 
