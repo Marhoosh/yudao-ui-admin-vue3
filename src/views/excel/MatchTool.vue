@@ -81,7 +81,7 @@
     <!-- 3. 匹配与导出 -->
     <el-card class="mb-16px">
       <div class="flex gap-16px items-center">
-        <el-button type="primary" :loading="matching" @click="handleMatch">执行匹配</el-button>
+        <el-button type="primary"  @click="handleMatch">执行匹配</el-button>
         <el-alert v-if="matchError" type="error" :closable="false" show-icon class="ml-16px">{{ matchError }}</el-alert>
       </div>
     </el-card>
@@ -109,7 +109,6 @@ const unifyPatientCol = ref('A')
 const fileSettings = ref<any[]>([])
 
 // 匹配结果
-const matching = ref(false)
 const matchError = ref('')
 
 // 监听文件变化，自动同步到设置表格
@@ -175,7 +174,6 @@ async function handleMatch() {
       return
     }
   }
-  matching.value = true
   matchError.value = ''
   try {
     // 构造FormData
@@ -209,7 +207,6 @@ async function handleMatch() {
     console.error('匹配出错', e)
     matchError.value = '匹配失败，请检查参数和文件后重试'
   } finally {
-    matching.value = false
   }
 }
 
