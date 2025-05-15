@@ -81,8 +81,9 @@
     <!-- 3. 匹配与导出 -->
     <el-card class="mb-16px">
       <div class="flex gap-16px items-center">
-        <el-button type="primary"  @click="handleMatch">执行匹配</el-button>
-        <el-alert v-if="matchError" type="error" :closable="false" show-icon class="ml-16px">{{ matchError }}</el-alert>
+        <el-button type="primary" :loading="loading" @click="handleMatch">执行匹配</el-button>
+        <el-alert v-if="loading" type="info" :closable="false" show-icon class="ml-16px">服务器正在匹配中，请稍等...</el-alert>
+        <el-alert v-else-if="matchError" type="error" :closable="false" show-icon class="ml-16px">{{ matchError }}</el-alert>
       </div>
     </el-card>
 
@@ -110,6 +111,8 @@ const fileSettings = ref<any[]>([])
 
 // 匹配结果
 const matchError = ref('')
+// 加载状态
+const loading = ref(false)
 
 // 监听文件变化，自动同步到设置表格
 watch([reportFileList, patientFileList], () => {
@@ -175,6 +178,7 @@ async function handleMatch() {
     }
   }
   matchError.value = ''
+  loading.value = true
   try {
     // 构造FormData
     const formData = new FormData()
@@ -207,9 +211,9 @@ async function handleMatch() {
     console.error('匹配出错', e)
     matchError.value = '匹配失败，请检查参数和文件后重试'
   } finally {
+    loading.value = false
   }
 }
-
 
 </script>
 
