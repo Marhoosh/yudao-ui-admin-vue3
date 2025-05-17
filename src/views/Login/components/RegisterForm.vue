@@ -28,7 +28,7 @@
         </el-form-item>
       </el-col>
       <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
-        <el-form-item prop="username">
+        <el-form-item prop="nickname">
           <el-input
             v-model="registerData.registerForm.nickname"
             placeholder="昵称(可以是中文)"
