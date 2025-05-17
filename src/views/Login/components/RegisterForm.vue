@@ -30,8 +30,8 @@
       <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
         <el-form-item prop="username">
           <el-input
-            v-model="registerData.registerForm.username"
-            :placeholder="t('login.username')"
+            v-model="registerData.registerForm.nickname"
+            placeholder="昵称(可以是中文)"
             size="large"
             :prefix-icon="iconAvatar"
           />
@@ -40,8 +40,8 @@
       <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
         <el-form-item prop="username">
           <el-input
-            v-model="registerData.registerForm.nickname"
-            placeholder="昵称"
+            v-model="registerData.registerForm.username"
+            :placeholder="t('login.username')"
             size="large"
             :prefix-icon="iconAvatar"
           />

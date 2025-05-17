@@ -117,7 +117,7 @@ export default {
     welcome: '欢迎使用本系统',
     message: '',
     tenantname: '租户名称',
-    username: '用户名',
+    username: '用户名(只能使用数字+字母)',
     password: '密码',
     code: '验证码',
     login: '登录',
