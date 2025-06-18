@@ -50,7 +50,9 @@
         </div>
         <div>
           <span>报表列号：</span>
-          <el-input v-model="unifyReportCol" placeholder="如A" size="small" style="width:60px" />
+          <el-select v-model="unifyReportCol" placeholder="选择列号" size="small" style="width:80px">
+            <el-option v-for="letter in letters" :key="letter" :label="letter" :value="letter" />
+          </el-select>
         </div>
         <div>
           <span>患者库工作表名：</span>
@@ -58,7 +60,9 @@
         </div>
         <div>
           <span>患者库列号：</span>
-          <el-input v-model="unifyPatientCol" placeholder="如A" size="small" style="width:60px" />
+          <el-select v-model="unifyPatientCol" placeholder="选择列号" size="small" style="width:80px">
+            <el-option v-for="letter in letters" :key="letter" :label="letter" :value="letter" />
+          </el-select>
         </div>
         <el-button type="primary" size="small" @click="applyUnifySetting">应用到全部</el-button>
       </div>
@@ -70,9 +74,11 @@
             <el-input v-model="row.sheetName" size="small" />
           </template>
         </el-table-column>
-        <el-table-column prop="col" label="列号" width="80">
+        <el-table-column prop="col" label="列号" width="100">
           <template #default="{ row }">
-            <el-input v-model="row.col" size="small" />
+            <el-select v-model="row.col" size="small" style="width:80px">
+              <el-option v-for="letter in letters" :key="letter" :label="letter" :value="letter" />
+            </el-select>
           </template>
         </el-table-column>
       </el-table>
@@ -105,6 +111,12 @@ const unifyReportSheet = ref('5.3')
 const unifyReportCol = ref('C')
 const unifyPatientSheet = ref('Sheet1')
 const unifyPatientCol = ref('A')
+
+// 列号选项（A-Z的大写字母）
+const letters = ref([
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+  'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+])
 
 // 文件设置表格数据
 const fileSettings = ref<any[]>([])
@@ -203,13 +215,24 @@ async function handleMatch() {
     
     // 调用匹配接口
     const res = await matchExcel(formData)
-    download.excel(res, '匹配结果.xlsx')
+    
+    // 生成带日期时间的文件名
+    const now = new Date()
+    const dateStr = now.getFullYear() +
+                   (now.getMonth() + 1).toString().padStart(2, '0') +
+                   now.getDate().toString().padStart(2, '0') +
+                   now.getHours().toString().padStart(2, '0') +
+                   now.getMinutes().toString().padStart(2, '0') +
+                   now.getSeconds().toString().padStart(2, '0')
+    const fileName = `匹配结果${dateStr}.xlsx`
+    
+    download.excel(res, fileName)
 
     ElMessage.success('匹配成功，已自动下载结果文件')
 
   } catch (e) {
     console.error('匹配出错', e)
-    matchError.value = '匹配失败，请检查参数和文件后重试'
+    matchError.value = '匹配失败，请检查工作表名称和列号是否正确'
   } finally {
     loading.value = false
   }
