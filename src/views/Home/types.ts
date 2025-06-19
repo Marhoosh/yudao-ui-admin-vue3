@@ -18,6 +18,7 @@ export type Notice = {
   type: string
   keys: string[]
   date: Date | number | string
+  content: string
 }
 
 export type Shortcut = {
