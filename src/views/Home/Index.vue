@@ -166,7 +166,7 @@
                     {{ item.type }} : {{ item.title }}
                   </Highlight>
                 </div>
-                <div class="mt-16px text-12px text-gray-400" v-html="item.content">
+                <div class="mt-16px text-14px " v-html="item.content">
                 </div>
                 <div class="mt-16px text-12px text-gray-400">
                   {{ formatTime(item.date, 'yyyy-MM-dd') }}
