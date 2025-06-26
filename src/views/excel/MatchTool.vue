@@ -106,8 +106,16 @@ import download from '@/utils/download'
 const reportFileList = ref<any[]>([])
 const patientFileList = ref<any[]>([])
 
+// 获取当天日期字符串，格式为 yyyy-MM-dd
+function getTodayStr() {
+  const now = new Date()
+  const mm = (now.getMonth() + 1).toString().padStart(2)
+  const dd = now.getDate().toString().padStart(2)
+  return `${mm}.${dd}`
+}
+
 // 文件参数设置
-const unifyReportSheet = ref('5.3')
+const unifyReportSheet = ref(getTodayStr())
 const unifyReportCol = ref('C')
 const unifyPatientSheet = ref('Sheet1')
 const unifyPatientCol = ref('A')
