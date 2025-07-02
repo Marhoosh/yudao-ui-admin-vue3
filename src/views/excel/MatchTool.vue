@@ -106,12 +106,13 @@ import download from '@/utils/download'
 const reportFileList = ref<any[]>([])
 const patientFileList = ref<any[]>([])
 
-// 获取当天日期字符串，格式为 yyyy-MM-dd
+// 获取当天日期字符串，格式为 yyyy-MM-dd，个位数不补零
 function getTodayStr() {
-  const now = new Date()
-  const mm = (now.getMonth() + 1).toString().padStart(2)
-  const dd = now.getDate().toString().padStart(2)
-  return `${mm}.${dd}`
+  const now = new Date();
+  const month = now.getMonth() + 1;  // 月份从0开始，所以要加1
+  const day = now.getDate();
+
+  return `${month}.${day}`;
 }
 
 // 文件参数设置
