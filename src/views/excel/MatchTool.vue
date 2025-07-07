@@ -1,5 +1,10 @@
 <template>
   <div class="match-tool-container">
+    <ActivationOverlay
+      v-if="showActivation"
+      :loading="activating"
+      @activate="handleActivate"
+    />
     <!-- 1. 上传文件 -->
     <el-card class="mb-16px">
       <div class="flex flex-wrap gap-24px">
@@ -97,14 +102,57 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { matchExcel } from '@/api/excel'
 import download from '@/utils/download'
+import { useUserStore } from '@/store/modules/user'
+import { getUserKeyByUserId, activateKey } from '@/api/system/user/key'
+import ActivationOverlay from './components/ActivationOverlay.vue'
 
 // 文件上传相关
 const reportFileList = ref<any[]>([])
 const patientFileList = ref<any[]>([])
+
+// 激活码相关
+const userStore = useUserStore()
+const showActivation = ref(false)
+const activating = ref(false)
+
+// 检查激活码
+const checkUserKey = async () => {
+  try {
+    const res = await getUserKeyByUserId(userStore.getUser.id)
+    if (res && res.status === 1) {
+      showActivation.value = false
+      return true
+    } else {
+      showActivation.value = true
+      return false
+    }
+  } catch (error) {
+    console.error('检查激活状态失败:', error)
+    showActivation.value = true
+    return false
+  }
+}
+
+// 处理激活码激活
+const handleActivate = async (code: string) => {
+  activating.value = true
+  try {
+    await activateKey(code)
+    ElMessage.success('激活成功')
+    showActivation.value = false
+  } catch (error) {
+  } finally {
+    activating.value = false
+  }
+}
+
+onMounted(() => {
+  checkUserKey()
+})
 
 // 获取当天日期字符串，格式为 yyyy-MM-dd，个位数不补零
 function getTodayStr() {
@@ -251,6 +299,8 @@ async function handleMatch() {
 
 <style scoped>
 .match-tool-container {
+  position: relative;
+  height: 100%;
   max-width: 1100px;
   margin: 0 auto;
   padding: 24px 0;
