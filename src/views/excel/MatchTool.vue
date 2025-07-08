@@ -1,5 +1,23 @@
 <template>
   <div class="match-tool-container">
+    <!-- 激活码信息展示区 -->
+    <el-card v-if="userKey && userKey.status === 1" class="mb-16px key-info-card">
+      <div class="key-info-content">
+        <div class="key-info-item">
+          <span class="key-label">激活码：</span>
+          <span class="key-value">{{ userKey.number }}</span>
+        </div>
+        <div class="key-info-item">
+          <span class="key-label">过期时间：</span>
+          <span class="key-value">{{ formatExpireTime(userKey.expireTime) }}</span>
+        </div>
+        <div class="key-info-item">
+          <span class="key-label">状态：</span>
+          <span class="key-status-badge success">有效</span>
+        </div>
+      </div>
+    </el-card>
+
     <ActivationOverlay
       v-if="showActivation"
       :loading="activating"
@@ -110,6 +128,7 @@ import download from '@/utils/download'
 import { useUserStore } from '@/store/modules/user'
 import { getUserKeyByUserId, activateKey, KeyVO } from '@/api/system/user/key'
 import ActivationOverlay from './components/ActivationOverlay.vue'
+import { formatDate } from '@/utils/formatTime'
 
 // 文件上传相关
 const reportFileList = ref<any[]>([])
@@ -152,6 +171,12 @@ const handleActivate = async (code: string) => {
   } finally {
     activating.value = false
   }
+}
+
+// 格式化过期时间
+const formatExpireTime = (expireTime: string | number | null) => {
+  if (!expireTime) return '永久有效'
+  return formatDate(new Date(expireTime))
 }
 
 onMounted(() => {
@@ -308,5 +333,55 @@ async function handleMatch() {
   max-width: 1100px;
   margin: 0 auto;
   padding: 24px 0;
+}
+
+.key-info-card {
+  margin-bottom: 16px;
+}
+
+.key-info-content {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.key-info-item {
+  display: flex;
+  align-items: center;
+}
+
+.key-label {
+  font-weight: bold;
+  margin-right: 8px;
+  color: #606266;
+}
+
+.key-value {
+  color: #303133;
+}
+
+.key-status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.key-status-badge.success {
+  background-color: #f0f9eb;
+  color: #67c23a;
+  border: 1px solid #e1f3d8;
+}
+
+.key-status-badge.warning {
+  background-color: #fdf6ec;
+  color: #e6a23c;
+  border: 1px solid #faecd8;
+}
+
+.key-status-badge.error {
+  background-color: #fef0f0;
+  color: #f56c6c;
+  border: 1px solid #fde2e2;
 }
 </style>
