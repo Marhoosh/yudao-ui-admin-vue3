@@ -35,7 +35,7 @@
             :auto-upload="false"
             :multiple="true"
             :show-file-list="true"
-            :limit="10"
+            :limit="100"
             :on-remove="handleRemoveReport"
             :before-upload="() => false"
             :on-change="handleReportChange"
