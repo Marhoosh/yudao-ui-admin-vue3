@@ -3,6 +3,7 @@
     <ActivationOverlay
       v-if="showActivation"
       :loading="activating"
+      :user-key="userKey"
       @activate="handleActivate"
     />
     <!-- 1. 上传文件 -->
@@ -107,7 +108,7 @@ import { ElMessage } from 'element-plus'
 import { matchExcel } from '@/api/excel'
 import download from '@/utils/download'
 import { useUserStore } from '@/store/modules/user'
-import { getUserKeyByUserId, activateKey } from '@/api/system/user/key'
+import { getUserKeyByUserId, activateKey, KeyVO } from '@/api/system/user/key'
 import ActivationOverlay from './components/ActivationOverlay.vue'
 
 // 文件上传相关
@@ -118,11 +119,13 @@ const patientFileList = ref<any[]>([])
 const userStore = useUserStore()
 const showActivation = ref(false)
 const activating = ref(false)
+const userKey = ref<KeyVO | null>(null)
 
 // 检查激活码
 const checkUserKey = async () => {
   try {
     const res = await getUserKeyByUserId(userStore.getUser.id)
+    userKey.value = res
     if (res && res.status === 1) {
       showActivation.value = false
       return true
@@ -141,8 +144,9 @@ const checkUserKey = async () => {
 const handleActivate = async (code: string) => {
   activating.value = true
   try {
-    await activateKey(code)
+    const res = await activateKey(code)
     ElMessage.success('激活成功')
+    userKey.value = res
     showActivation.value = false
   } catch (error) {
   } finally {
