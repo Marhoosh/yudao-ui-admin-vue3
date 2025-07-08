@@ -126,7 +126,7 @@ import { ElMessage } from 'element-plus'
 import { matchExcel } from '@/api/excel'
 import download from '@/utils/download'
 import { useUserStore } from '@/store/modules/user'
-import { getUserKeyByUserId, activateKey, KeyVO } from '@/api/system/user/key'
+import { KeyApi, KeyVO } from '@/api/system/key/index'
 import ActivationOverlay from './components/ActivationOverlay.vue'
 import { formatDate } from '@/utils/formatTime'
 
@@ -143,7 +143,7 @@ const userKey = ref<KeyVO | null>(null)
 // 检查激活码
 const checkUserKey = async () => {
   try {
-    const res = await getUserKeyByUserId(userStore.getUser.id)
+    const res = await KeyApi.getUserKeyByUserId(userStore.getUser.id)
     userKey.value = res
     if (res && res.status === 1) {
       showActivation.value = false
@@ -163,7 +163,7 @@ const checkUserKey = async () => {
 const handleActivate = async (code: string) => {
   activating.value = true
   try {
-    const res = await activateKey(code)
+    const res = await KeyApi.activateKey(code)
     ElMessage.success('激活成功')
     userKey.value = res
     showActivation.value = false
@@ -174,7 +174,7 @@ const handleActivate = async (code: string) => {
 }
 
 // 格式化过期时间
-const formatExpireTime = (expireTime: string | number | null) => {
+const formatExpireTime = (expireTime: Date | null) => {
   if (!expireTime) return '永久有效'
   return formatDate(new Date(expireTime))
 }
@@ -318,7 +318,7 @@ async function handleMatch() {
 
   } catch (e) {
     console.error('匹配出错', e)
-    matchError.value = '匹配失败，请检查工作表名称和列号是否正确'
+    matchError.value = '匹配失败'
   } finally {
     loading.value = false
   }

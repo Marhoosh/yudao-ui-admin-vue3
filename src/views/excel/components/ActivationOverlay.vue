@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import {  KeyVO } from '@/api/system/user/key'
+import { KeyVO } from '@/api/system/key/index'
 import { formatDate } from '@/utils/formatTime'
 
 const props = defineProps<{
@@ -110,7 +110,7 @@ const openQrCode = () => {
 }
 
 // 格式化过期时间
-const formatExpireTime = (expireTime: string | number | null) => {
+const formatExpireTime = (expireTime: Date | null) => {
   if (!expireTime) return '永久有效'
   return formatDate(new Date(expireTime))
 }
