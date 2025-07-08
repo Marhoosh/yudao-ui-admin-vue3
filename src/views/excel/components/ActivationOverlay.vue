@@ -50,7 +50,12 @@
             </div>
             <div class="method-item">
               <div class="method-title">方式二：扫码购买</div>
-              <el-button type="primary" link @click="openQrCode">点击链接扫码购买</el-button>
+              <el-button type="primary" link @click="showQrCode = true">查看二维码</el-button>
+              <el-dialog v-model="showQrCode" title="扫码购买" width="300px" center>
+                <div class="qrcode-container">
+                  <img :src="qrCodeImage" alt="购买二维码" class="qrcode-image" />
+                </div>
+              </el-dialog>
             </div>
           </div>
         </div>
@@ -64,6 +69,8 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { KeyVO } from '@/api/system/key/index'
 import { formatDate } from '@/utils/formatTime'
+// 导入图片
+import qrCodeImage from '@/assets/imgs/buy_key.jpg'
 
 const props = defineProps<{
   loading?: boolean
@@ -75,6 +82,7 @@ const emit = defineEmits<{
 }>()
 
 const activationCode = ref('')
+const showQrCode = ref(false)
 
 onMounted(() => {
   // 如果有用户激活码，则自动填入
@@ -94,19 +102,56 @@ const handleActivate = () => {
 }
 
 const copyLink = () => {
-  navigator.clipboard.writeText(purchaseLink).then(() => {
-    ElMessage.success('链接已复制到剪贴板')
-  }).catch(() => {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(purchaseLink)
+      .then(() => {
+        ElMessage.success('链接已复制到剪贴板')
+      })
+      .catch(() => {
+        fallbackCopyToClipboard(purchaseLink)
+      })
+  } else {
+    fallbackCopyToClipboard(purchaseLink)
+  }
+}
+
+// 兼容性处理方案
+const fallbackCopyToClipboard = (text: string) => {
+  try {
+    // 创建临时文本区域
+    const textArea = document.createElement('textarea')
+    textArea.value = text
+    // 使元素不可见
+    textArea.style.position = 'fixed'
+    textArea.style.top = '0'
+    textArea.style.left = '0'
+    textArea.style.width = '2em'
+    textArea.style.height = '2em'
+    textArea.style.padding = '0'
+    textArea.style.border = 'none'
+    textArea.style.outline = 'none'
+    textArea.style.boxShadow = 'none'
+    textArea.style.background = 'transparent'
+    document.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+    
+    // 执行复制命令
+    const successful = document.execCommand('copy')
+    document.body.removeChild(textArea)
+    
+    if (successful) {
+      ElMessage.success('链接已复制到剪贴板')
+    } else {
+      ElMessage.warning('复制失败，请手动复制')
+    }
+  } catch (err) {
     ElMessage.error('复制失败，请手动复制')
-  })
+  }
 }
 
 const openLink = () => {
   window.open('https://m.tb.cn/h.h65BpPI?tk=ONDh4aqEBix', '_blank')
-}
-
-const openQrCode = () => {
-  window.open('/src/assets/imgs/buy_key.jpg', '_blank')
 }
 
 // 格式化过期时间
@@ -224,5 +269,16 @@ const formatExpireTime = (expireTime: Date | null) => {
   word-break: break-all;
   color: #606266;
   font-size: 14px;
+}
+
+.qrcode-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qrcode-image {
+  max-width: 100%;
+  height: auto;
 }
 </style> 

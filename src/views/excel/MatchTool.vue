@@ -9,7 +9,7 @@
         </div>
         <div class="key-info-item">
           <span class="key-label">过期时间：</span>
-          <span class="key-value">{{ formatExpireTime(userKey.expireTime) }}</span>
+          <span class="key-value expire-date">{{ formatExpireTime(userKey.expireTime) }}</span>
         </div>
         <div class="key-info-item">
           <span class="key-label">状态：</span>
@@ -359,6 +359,10 @@ async function handleMatch() {
 
 .key-value {
   color: #303133;
+}
+
+.key-value.expire-date {
+  color: #f56c6c;
 }
 
 .key-status-badge {
