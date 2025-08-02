@@ -90,6 +90,10 @@
         </div>
         <el-button type="primary" size="small" @click="applyUnifySetting">应用到全部</el-button>
       </div>
+      <!-- 模糊匹配配置 -->
+      <div class="mb-12px">
+        <el-checkbox v-model="isFuzzyMatch" size="small">启用模糊匹配</el-checkbox>
+      </div>
       <el-table :data="fileSettings" border size="small">
         <el-table-column prop="type" label="类型" width="80" />
         <el-table-column prop="fileName" label="文件名" />
@@ -207,6 +211,9 @@ const letters = ref([
 // 文件设置表格数据
 const fileSettings = ref<any[]>([])
 
+// 模糊匹配配置
+const isFuzzyMatch = ref(true)
+
 // 匹配结果
 const matchError = ref('')
 // 加载状态
@@ -288,6 +295,9 @@ async function handleMatch() {
       formData.append('patientSheetName', fileSettings.value[patientIdx].sheetName)
       formData.append('patientColumnIndex', fileSettings.value[patientIdx].col)
     }
+    
+    // 添加模糊匹配参数
+    formData.append('isFuzzyMatch', isFuzzyMatch.value.toString())
     
     // 添加报表信息
     const reportSettings = fileSettings.value.filter(f => f.type === '报表')
