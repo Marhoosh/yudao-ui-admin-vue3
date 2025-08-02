@@ -92,7 +92,7 @@
       </div>
       <!-- 模糊匹配配置 -->
       <div class="mb-12px">
-        <el-checkbox v-model="isFuzzyMatch" size="small">启用模糊匹配</el-checkbox>
+        <el-checkbox v-model="isFuzzyMatch" size="default" class="fuzzy-match-checkbox">模糊匹配</el-checkbox>
       </div>
       <el-table :data="fileSettings" border size="small">
         <el-table-column prop="type" label="类型" width="80" />
@@ -397,5 +397,19 @@ async function handleMatch() {
   background-color: #fef0f0;
   color: #f56c6c;
   border: 1px solid #fde2e2;
+}
+
+/* 模糊匹配勾选框样式 */
+.fuzzy-match-checkbox {
+  font-size: 14px;
+}
+
+.fuzzy-match-checkbox :deep(.el-checkbox__input) {
+  transform: scale(1.2);
+}
+
+.fuzzy-match-checkbox :deep(.el-checkbox__label) {
+  font-size: 14px;
+  font-weight: 500;
 }
 </style>
