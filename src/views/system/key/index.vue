@@ -26,14 +26,19 @@
           class="!w-240px"
         />
       </el-form-item>
-      <el-form-item label="卡的状态(0-未使用，1-正在使用，2-已过期）" prop="status">
+      <el-form-item label="卡的状态" prop="status">
         <el-select
           v-model="queryParams.status"
-          placeholder="请选择卡的状态(0-未使用，1-正在使用，2-已过期）"
+          placeholder="请选择卡的状态"
           clearable
           class="!w-240px"
         >
-          <el-option label="请选择字典生成" value="" />
+          <el-option
+            v-for="dict in getIntDictOptions(DICT_TYPE.SYSTEM_KEY_STATUS)"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="创建时间" prop="createTime">
@@ -170,6 +175,7 @@ import { dateFormatter } from '@/utils/formatTime'
 import download from '@/utils/download'
 import { KeyApi, KeyVO } from '@/api/system/key'
 import KeyForm from './KeyForm.vue'
+import {DICT_TYPE, getIntDictOptions} from "@/utils/dict";
 
 /** 激活码 列表 */
 defineOptions({ name: 'Key' })

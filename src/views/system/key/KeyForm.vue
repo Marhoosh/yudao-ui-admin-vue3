@@ -13,9 +13,15 @@
       <el-form-item label="卡的天数" prop="validDays">
         <el-input v-model="formData.validDays" placeholder="请输入卡的天数" />
       </el-form-item>
-      <el-form-item label="卡的状态(0-未使用，1-正在使用，2-已过期）" prop="status">
+      <el-form-item label="卡的状态" prop="status">
         <el-radio-group v-model="formData.status">
-          <el-radio value="1">请选择字典生成</el-radio>
+          <el-radio
+            v-for="dict in getIntDictOptions(DICT_TYPE.SYSTEM_KEY_STATUS)"
+            :key="dict.value"
+            :value="dict.value"
+          >
+            {{ dict.label }}
+          </el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="使用时间" prop="useTime">
@@ -46,6 +52,7 @@
 </template>
 <script setup lang="ts">
 import { KeyApi, KeyVO } from '@/api/system/key'
+import {DICT_TYPE, getIntDictOptions} from "@/utils/dict";
 
 /** 激活码 表单 */
 defineOptions({ name: 'KeyForm' })
