@@ -38,24 +38,12 @@
         </div>
         
         <div class="purchase-section">
-          <h3 class="purchase-title">购买激活码</h3>
+          <h3 class="purchase-title">扫码购买激活码</h3>
           <div class="purchase-method">
             <div class="method-item">
-              <div class="method-title">方式一：复制链接购买</div>
-              <div class="link-box">
-                <span class="link-text">【闲鱼】https://m.tb.cn/h.h65BpPI?tk=ONDh4aqEBix HU108 「我在闲鱼发布了【Excel报表匹配处理系统激活码】」</span>
-                <el-button type="primary" link @click="copyLink">复制链接</el-button>
-              </div>
-              <el-button type="primary" link @click="openLink">点击链接直接打开</el-button>
-            </div>
-            <div class="method-item">
-              <div class="method-title">方式二：扫码购买</div>
-              <el-button type="primary" link @click="showQrCode = true">查看二维码</el-button>
-              <el-dialog v-model="showQrCode" title="扫码购买" width="300px" center>
                 <div class="qrcode-container">
                   <img :src="qrCodeImage" alt="购买二维码" class="qrcode-image" />
                 </div>
-              </el-dialog>
             </div>
           </div>
         </div>
@@ -180,8 +168,11 @@ const formatExpireTime = (expireTime: Date | null) => {
   padding: 40px;
   border-radius: 8px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-  width: 100%;
+  width: 90%;
   max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .activation-input {
@@ -280,5 +271,53 @@ const formatExpireTime = (expireTime: Date | null) => {
 .qrcode-image {
   max-width: 100%;
   height: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .activation-content {
+    width: 95%;
+    padding: 24px;
+    max-height: 95vh;
+  }
+
+  .purchase-section {
+    margin-top: 24px;
+  }
+
+  .purchase-title {
+    font-size: 14px;
+  }
+
+  .method-item {
+    padding: 12px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .activation-content {
+    width: 98%;
+    padding: 16px;
+  }
+
+  .activation-button {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .key-info {
+    padding: 8px;
+  }
+
+  .purchase-section {
+    margin-top: 16px;
+  }
+
+  .purchase-title {
+    font-size: 13px;
+  }
+
+  .method-item {
+    padding: 8px;
+  }
 }
 </style> 

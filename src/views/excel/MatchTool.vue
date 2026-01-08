@@ -116,7 +116,7 @@
     <el-card class="mb-16px">
       <div class="flex gap-16px items-center">
         <el-button type="primary" :loading="loading" @click="handleMatch">执行匹配</el-button>
-        <el-alert v-if="loading" type="info" :closable="false" show-icon class="ml-16px">服务器正在匹配中，请稍等...</el-alert>
+        <el-alert v-if="loading" type="info" :closable="false" show-icon class="ml-16px">正在匹配中，请稍等...</el-alert>
         <el-alert v-else-if="matchError" type="error" :closable="false" show-icon class="ml-16px">{{ matchError }}</el-alert>
       </div>
     </el-card>
