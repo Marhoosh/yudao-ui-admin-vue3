@@ -147,7 +147,7 @@ const userKey = ref<KeyVO | null>(null)
 // 检查激活码
 const checkUserKey = async () => {
   try {
-    const res = await KeyApi.getUserKeyByUserId(userStore.getUser.id)
+    const res = await KeyApi.getCurrentUserKey()
     userKey.value = res
     if (res && res.status === 1) {
       showActivation.value = false
