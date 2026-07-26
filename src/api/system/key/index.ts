@@ -47,7 +47,7 @@ export const KeyApi = {
 
   // 获取指定用户编号的激活码
   getCurrentUserKey: async () => {
-    return await request.get({ url: '/system/key/get-by-user-id' })
+    return await request.get({ url: '/system/key/get-current-user-key' })
   },
 
   // 激活码验证接口
