@@ -2,18 +2,6 @@
   <div class="activation-overlay">
     <div class="activation-content">
       <div class="activation-form">
-        <el-input
-          v-model="activationCode"
-          placeholder="请输入激活码"
-          class="activation-input"
-        >
-          <template #append>
-            <el-button type="primary" :loading="loading" @click="handleActivate" class="activation-button">
-              激活
-            </el-button>
-          </template>
-        </el-input>
-        
         <!-- 激活码过期时间显示 -->
         <div v-if="userKey && userKey.status === 1" class="key-info">
           <div class="key-status success">
@@ -37,14 +25,41 @@
           </div>
         </div>
         
-        <div class="purchase-section">
-          <h3 class="purchase-title">扫码购买激活码</h3>
-          <div class="purchase-method">
-            <div class="method-item">
-                <div class="qrcode-container">
-                  <img :src="qrCodeImage" alt="购买二维码" class="qrcode-image" />
-                </div>
-            </div>
+        <div v-if="!hasActiveKey" class="purchase-section">
+          <h3 class="purchase-title">请选择激活码套餐</h3>
+          <div class="package-list">
+            <button
+              v-for="paymentPackage in KEY_PAYMENT_PACKAGES"
+              :key="paymentPackage.code"
+              type="button"
+              class="package-card"
+              :class="{ selected: selectedPackageCode === paymentPackage.code }"
+              @click="selectedPackageCode = paymentPackage.code"
+            >
+              <span class="package-name">{{ paymentPackage.name }}</span>
+              <span class="package-days">{{ paymentPackage.validDays }} 天</span>
+              <span class="package-price">¥{{ formatAmount(paymentPackage.amountFen) }}</span>
+            </button>
+          </div>
+          <el-alert
+            v-if="purchaseError"
+            :title="purchaseError"
+            type="error"
+            :closable="false"
+            show-icon
+            class="purchase-error"
+          />
+          <el-button
+            type="primary"
+            class="purchase-button"
+            :loading="creatingOrder"
+            @click="handlePurchase"
+          >
+            立即支付
+          </el-button>
+          <div class="payment-tip">
+            <div>若已完成支付，请刷新页面。</div>
+            <div>有问题请联系微信号：workTech168</div>
           </div>
         </div>
       </div>
@@ -53,97 +68,50 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { KeyVO } from '@/api/system/key/index'
+import { computed, ref } from 'vue'
+import {
+  KEY_PAYMENT_PACKAGES,
+  KeyApi,
+  KeyPaymentPackageCodeEnum,
+  KeyStatusEnum
+} from '@/api/system/key/index'
+import type { KeyVO } from '@/api/system/key/index'
 import { formatDate } from '@/utils/formatTime'
-// 导入图片
-import qrCodeImage from '@/assets/imgs/buy_key.jpg'
 
 const props = defineProps<{
-  loading?: boolean
   userKey?: KeyVO | null
 }>()
 
-const emit = defineEmits<{
-  (e: 'activate', code: string): void
-}>()
+const selectedPackageCode = ref(KeyPaymentPackageCodeEnum.MONTHLY)
+const creatingOrder = ref(false)
+const purchaseError = ref('')
+const hasActiveKey = computed(() => props.userKey?.status === KeyStatusEnum.ACTIVE)
 
-const activationCode = ref('')
-const showQrCode = ref(false)
-
-onMounted(() => {
-  // 如果有用户激活码，则自动填入
-  if (props.userKey && props.userKey.number) {
-    activationCode.value = props.userKey.number
-  }
-})
-
-const purchaseLink = '【闲鱼】https://m.tb.cn/h.h65BpPI?tk=ONDh4aqEBix HU108 「我在闲鱼发布了【Excel报表匹配处理系统激活码】」'
-
-const handleActivate = () => {
-  if (!activationCode.value) {
-    ElMessage.warning('请输入激活码')
-    return
-  }
-  emit('activate', activationCode.value)
-}
-
-const copyLink = () => {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(purchaseLink)
-      .then(() => {
-        ElMessage.success('链接已复制到剪贴板')
-      })
-      .catch(() => {
-        fallbackCopyToClipboard(purchaseLink)
-      })
-  } else {
-    fallbackCopyToClipboard(purchaseLink)
-  }
-}
-
-// 兼容性处理方案
-const fallbackCopyToClipboard = (text: string) => {
+const handlePurchase = async () => {
+  purchaseError.value = ''
+  creatingOrder.value = true
   try {
-    // 创建临时文本区域
-    const textArea = document.createElement('textarea')
-    textArea.value = text
-    // 使元素不可见
-    textArea.style.position = 'fixed'
-    textArea.style.top = '0'
-    textArea.style.left = '0'
-    textArea.style.width = '2em'
-    textArea.style.height = '2em'
-    textArea.style.padding = '0'
-    textArea.style.border = 'none'
-    textArea.style.outline = 'none'
-    textArea.style.boxShadow = 'none'
-    textArea.style.background = 'transparent'
-    document.body.appendChild(textArea)
-    textArea.focus()
-    textArea.select()
-    
-    // 执行复制命令
-    const successful = document.execCommand('copy')
-    document.body.removeChild(textArea)
-    
-    if (successful) {
-      ElMessage.success('链接已复制到剪贴板')
-    } else {
-      ElMessage.warning('复制失败，请手动复制')
+    const paymentOrder = await KeyApi.createPaymentOrder(selectedPackageCode.value)
+    if (!paymentOrder.payUrl) {
+      throw new Error('支付平台未返回有效的支付地址')
     }
-  } catch (err) {
-    ElMessage.error('复制失败，请手动复制')
+    const paymentUrl = new URL(paymentOrder.payUrl, window.location.origin)
+    if (!['http:', 'https:'].includes(paymentUrl.protocol)) {
+      throw new Error('支付平台返回的支付地址无效')
+    }
+    const paymentWindow = window.open(paymentUrl.href, '_blank', 'noopener,noreferrer')
+
+  } catch (error) {
+    purchaseError.value = error instanceof Error ? error.message : '创建支付订单失败，请稍后重试'
+  } finally {
+    creatingOrder.value = false
   }
 }
 
-const openLink = () => {
-  window.open('https://m.tb.cn/h.h65BpPI?tk=ONDh4aqEBix', '_blank')
-}
+const formatAmount = (amountFen: number) => (amountFen / 100).toFixed(2).replace(/\.00$/, '')
 
 // 格式化过期时间
-const formatExpireTime = (expireTime: Date | null) => {
+const formatExpireTime = (expireTime: string | null) => {
   if (!expireTime) return '永久有效'
   return formatDate(new Date(expireTime))
 }
@@ -173,16 +141,6 @@ const formatExpireTime = (expireTime: Date | null) => {
   max-height: 90vh;
   overflow-y: auto;
   box-sizing: border-box;
-}
-
-.activation-input {
-  width: 100%;
-}
-
-.activation-button {
-  background-color: var(--el-color-primary) !important;
-  border-color: var(--el-color-primary) !important;
-  color: white !important;
 }
 
 .key-info {
@@ -227,50 +185,62 @@ const formatExpireTime = (expireTime: Date | null) => {
   color: #303133;
 }
 
-.purchase-method {
+.package-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.package-card {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
-
-.method-item {
-  padding: 16px;
-  background-color: #f5f7fa;
-  border-radius: 4px;
-}
-
-.method-title {
-  font-weight: bold;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 10px;
   color: #303133;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.link-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-  background-color: white;
-  padding: 8px;
-  border-radius: 4px;
+.package-card:hover,
+.package-card.selected {
+  border-color: var(--el-color-primary);
+  box-shadow: 0 0 0 1px var(--el-color-primary-light-7);
 }
 
-.link-text {
-  flex: 1;
-  word-break: break-all;
-  color: #606266;
-  font-size: 14px;
+.package-name {
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.qrcode-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.package-days {
+  font-size: 13px;
+  color: #909399;
 }
 
-.qrcode-image {
-  max-width: 100%;
-  height: auto;
+.package-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f56c6c;
+}
+
+.purchase-error,
+.purchase-button {
+  margin-top: 16px;
+}
+
+.purchase-button {
+  width: 100%;
+}
+
+.payment-tip {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #909399;
+  text-align: center;
 }
 
 @media screen and (max-width: 768px) {
@@ -288,20 +258,12 @@ const formatExpireTime = (expireTime: Date | null) => {
     font-size: 14px;
   }
 
-  .method-item {
-    padding: 12px;
-  }
 }
 
 @media screen and (max-width: 480px) {
   .activation-content {
     width: 98%;
     padding: 16px;
-  }
-
-  .activation-button {
-    padding: 12px 16px;
-    font-size: 14px;
   }
 
   .key-info {
@@ -316,8 +278,8 @@ const formatExpireTime = (expireTime: Date | null) => {
     font-size: 13px;
   }
 
-  .method-item {
-    padding: 8px;
+  .package-list {
+    grid-template-columns: 1fr;
   }
 }
 </style> 

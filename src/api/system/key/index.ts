@@ -45,7 +45,7 @@ export const KEY_PAYMENT_PACKAGES: readonly KeyPaymentPackageVO[] = [
     code: KeyPaymentPackageCodeEnum.MONTHLY,
     name: '月卡',
     validDays: 30,
-    amountFen: 100
+    amountFen: 2_800
   },
   {
     code: KeyPaymentPackageCodeEnum.QUARTERLY,

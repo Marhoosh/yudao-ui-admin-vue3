@@ -20,9 +20,7 @@
 
     <ActivationOverlay
       v-if="showActivation"
-      :loading="activating"
       :user-key="userKey"
-      @activate="handleActivate"
     />
     <!-- 1. 上传文件 -->
     <el-card class="mb-16px">
@@ -125,12 +123,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { matchExcel } from '@/api/excel'
 import download from '@/utils/download'
-import { useUserStore } from '@/store/modules/user'
-import { KeyApi, KeyVO } from '@/api/system/key/index'
+import { KeyApi, KeyStatusEnum } from '@/api/system/key/index'
+import type { KeyVO } from '@/api/system/key/index'
 import ActivationOverlay from './components/ActivationOverlay.vue'
 import { formatDate } from '@/utils/formatTime'
 
@@ -139,9 +137,7 @@ const reportFileList = ref<any[]>([])
 const patientFileList = ref<any[]>([])
 
 // 激活码相关
-const userStore = useUserStore()
 const showActivation = ref(false)
-const activating = ref(false)
 const userKey = ref<KeyVO | null>(null)
 
 // 检查激活码
@@ -149,7 +145,7 @@ const checkUserKey = async () => {
   try {
     const res = await KeyApi.getCurrentUserKey()
     userKey.value = res
-    if (res && res.status === 1) {
+    if (res?.status === KeyStatusEnum.ACTIVE) {
       showActivation.value = false
       return true
     } else {
@@ -163,29 +159,13 @@ const checkUserKey = async () => {
   }
 }
 
-// 处理激活码激活
-const handleActivate = async (code: string) => {
-  activating.value = true
-  try {
-    const res = await KeyApi.activateKey(code)
-    ElMessage.success('激活成功')
-    userKey.value = res
-    showActivation.value = false
-  } catch (error) {
-  } finally {
-    activating.value = false
-  }
-}
-
 // 格式化过期时间
-const formatExpireTime = (expireTime: Date | null) => {
+const formatExpireTime = (expireTime: string | null) => {
   if (!expireTime) return '永久有效'
   return formatDate(new Date(expireTime))
 }
 
-onMounted(() => {
-  checkUserKey()
-})
+onMounted(checkUserKey)
 
 // 获取当天日期字符串，格式为 yyyy-MM-dd，个位数不补零
 function getTodayStr() {
