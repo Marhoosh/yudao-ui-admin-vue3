@@ -37,7 +37,10 @@ export interface KeyPaymentPackageVO {
   code: KeyPaymentPackageCodeEnum
   name: string
   validDays: number
+  originalAmountFen: number
   amountFen: number
+  monthlyEquivalentAmountFen: number
+  badge?: string
 }
 
 export const KEY_PAYMENT_PACKAGES: readonly KeyPaymentPackageVO[] = [
@@ -45,19 +48,26 @@ export const KEY_PAYMENT_PACKAGES: readonly KeyPaymentPackageVO[] = [
     code: KeyPaymentPackageCodeEnum.MONTHLY,
     name: '月卡',
     validDays: 30,
-    amountFen: 2_800
+    originalAmountFen: 3_000,
+    amountFen: 2_800,
+    monthlyEquivalentAmountFen: 2_800
   },
   {
     code: KeyPaymentPackageCodeEnum.QUARTERLY,
     name: '季卡',
     validDays: 90,
-    amountFen: 6_800
+    originalAmountFen: 9_000,
+    amountFen: 6_800,
+    monthlyEquivalentAmountFen: 2_200,
+    badge: '最多人选择'
   },
   {
     code: KeyPaymentPackageCodeEnum.YEARLY,
     name: '年卡',
     validDays: 365,
-    amountFen: 16_800
+    originalAmountFen: 36_000,
+    amountFen: 21_800,
+    monthlyEquivalentAmountFen: 1_800
   }
 ]
 
