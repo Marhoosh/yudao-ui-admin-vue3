@@ -12,6 +12,7 @@
         </div>
         <div v-else-if="userKey && userKey.status === 2" class="key-info">
           <div class="key-status error"> <i class="el-icon-close"></i> 激活码已过期 </div>
+          <div class="key-number"> 激活码：{{ userKey.number }} </div>
           <div class="key-expire"> 过期时间：{{ formatExpireTime(userKey.expireTime) }} </div>
         </div>
 
@@ -174,6 +175,7 @@ const formatExpireTime = (expireTime: string | null) => {
   color: #f56c6c;
 }
 
+.key-number,
 .key-expire {
   margin-top: 8px;
   color: #606266;
