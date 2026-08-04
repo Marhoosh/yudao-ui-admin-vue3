@@ -90,7 +90,17 @@
       </div>
       <!-- 模糊匹配配置 -->
       <div class="mb-12px">
-        <el-checkbox v-model="isFuzzyMatch" size="default" class="fuzzy-match-checkbox">模糊匹配</el-checkbox>
+        <el-tooltip
+          content="开启模糊匹配，只要数据表中包含匹配表中的文字，就能匹配成功。关闭此功能，则需匹配文字完全一致，方能匹配成功。"
+          placement="top"
+        >
+          <span class="fuzzy-match-control">
+            <el-checkbox v-model="isFuzzyMatch" size="default" class="fuzzy-match-checkbox">
+              模糊匹配
+            </el-checkbox>
+            <el-icon class="fuzzy-match-help-icon"><QuestionFilled /></el-icon>
+          </span>
+        </el-tooltip>
       </div>
       <el-table :data="fileSettings" border size="small">
         <el-table-column prop="type" label="类型" width="80" />
@@ -125,6 +135,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { matchExcel } from '@/api/excel'
 import download from '@/utils/download'
 import { KeyApi, KeyStatusEnum } from '@/api/system/key/index'
@@ -380,6 +391,12 @@ async function handleMatch() {
 }
 
 /* 模糊匹配勾选框样式 */
+.fuzzy-match-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .fuzzy-match-checkbox {
   font-size: 14px;
 }
@@ -391,5 +408,11 @@ async function handleMatch() {
 .fuzzy-match-checkbox :deep(.el-checkbox__label) {
   font-size: 14px;
   font-weight: 500;
+}
+
+.fuzzy-match-help-icon {
+  color: #909399;
+  font-size: 14px;
+  cursor: help;
 }
 </style>
