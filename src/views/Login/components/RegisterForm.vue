@@ -28,16 +28,6 @@
         </el-form-item>
       </el-col>
       <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
-        <el-form-item prop="nickname">
-          <el-input
-            v-model="registerData.registerForm.nickname"
-            placeholder="昵称(可以是中文)"
-            size="large"
-            :prefix-icon="iconAvatar"
-          />
-        </el-form-item>
-      </el-col>
-      <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
         <el-form-item prop="username">
           <el-input
             v-model="registerData.registerForm.username"
@@ -140,10 +130,6 @@ const registerRules = {
     { required: true, trigger: 'blur', message: '请输入您的账号' },
     { min: 4, max: 30, message: '用户账号长度必须介于 4 和 30 之间', trigger: 'blur' }
   ],
-  nickname: [
-    { required: true, trigger: 'blur', message: '请输入您的昵称' },
-    { min: 0, max: 30, message: '昵称长度必须介于 0 和 30 之间', trigger: 'blur' }
-  ],
   password: [
     { required: true, trigger: 'blur', message: '请输入您的密码' },
     { min: 5, max: 20, message: '用户密码长度必须介于 5 和 20 之间', trigger: 'blur' },
@@ -174,6 +160,8 @@ const registerData = reactive({
 const handleRegister = async (params: any) => {
   loading.value = true
   try {
+    registerData.registerForm.nickname = registerData.registerForm.username
+
     if (registerData.tenantEnable) {
       await getTenantId()
       registerData.registerForm.tenantId = authUtil.getTenantId()
