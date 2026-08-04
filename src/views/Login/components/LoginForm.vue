@@ -91,7 +91,7 @@
       />
       <el-col :span="24" style="padding-right: 10px; padding-left: 10px">
         <el-row :gutter="5" justify="space-between" style="width: 100%">
-          <el-col :span="8">
+          <el-col :span="24">
             <XButton
               :title="t('login.btnRegister')"
               class="w-[100%]"
