@@ -25,38 +25,38 @@
     <!-- 1. 上传文件 -->
     <el-card class="mb-16px">
       <div class="flex flex-wrap gap-24px">
-        <!-- 报表文件上传（多选） -->
+        <!-- 数据表文件上传（多选） -->
         <div class="flex-1 min-w-300px">
-          <div class="mb-8px font-bold">上传报表文件（可多选）</div>
+          <div class="mb-8px font-bold">上传数据表文件（可多选）</div>
           <el-upload
-            :file-list="reportFileList"
+            :file-list="dataTableFileList"
             :auto-upload="false"
             :multiple="true"
             :show-file-list="true"
             :limit="100"
-            :on-remove="handleRemoveReport"
+            :on-remove="handleRemoveDataTable"
             :before-upload="() => false"
-            :on-change="handleReportChange"
+            :on-change="handleDataTableChange"
             drag
           >
-            <el-button type="primary">上传报表文件（可多选）</el-button>
+            <el-button type="primary">上传数据表文件（可多选）</el-button>
           </el-upload>
         </div>
-        <!-- 患者库文件上传（单选） -->
+        <!-- 匹配表文件上传（单选） -->
         <div class="flex-1 min-w-300px">
-          <div class="mb-8px font-bold">上传患者库文件（仅1个）</div>
+          <div class="mb-8px font-bold">上传匹配表文件（仅1个）</div>
           <el-upload
-            :file-list="patientFileList"
+            :file-list="matchTableFileList"
             :auto-upload="false"
             :multiple="false"
             :show-file-list="true"
             :limit="1"
-            :on-remove="handleRemovePatient"
+            :on-remove="handleRemoveMatchTable"
             :before-upload="() => false"
-            :on-change="handlePatientChange"
+            :on-change="handleMatchTableChange"
             drag
           >
-            <el-button type="primary">上传患者库文件（仅1个）</el-button>
+            <el-button type="primary">上传匹配表文件（仅1个）</el-button>
           </el-upload>
         </div>
       </div>
@@ -67,22 +67,22 @@
       <div class="mb-12px font-bold">2. 设置工作表名与列号</div>
       <div class="flex gap-24px mb-12px">
         <div>
-          <span>报表工作表名：</span>
-          <el-input v-model="unifyReportSheet" placeholder="如Sheet1" size="small" style="width:120px" />
+          <span>数据表工作表名：</span>
+          <el-input v-model="unifiedDataTableSheetName" placeholder="如Sheet1" size="small" style="width:120px" />
         </div>
         <div>
-          <span>报表列号：</span>
-          <el-select v-model="unifyReportCol" placeholder="选择列号" size="small" style="width:80px">
+          <span>数据表列号：</span>
+          <el-select v-model="unifiedDataTableColumn" placeholder="选择列号" size="small" style="width:80px">
             <el-option v-for="letter in letters" :key="letter" :label="letter" :value="letter" />
           </el-select>
         </div>
         <div>
-          <span>患者库工作表名：</span>
-          <el-input v-model="unifyPatientSheet" placeholder="如患者信息" size="small" style="width:120px" />
+          <span>匹配表工作表名：</span>
+          <el-input v-model="unifiedMatchTableSheetName" placeholder="如Sheet1" size="small" style="width:120px" />
         </div>
         <div>
-          <span>患者库列号：</span>
-          <el-select v-model="unifyPatientCol" placeholder="选择列号" size="small" style="width:80px">
+          <span>匹配表列号：</span>
+          <el-select v-model="unifiedMatchTableColumn" placeholder="选择列号" size="small" style="width:80px">
             <el-option v-for="letter in letters" :key="letter" :label="letter" :value="letter" />
           </el-select>
         </div>
@@ -133,8 +133,8 @@ import ActivationOverlay from './components/ActivationOverlay.vue'
 import { formatDate } from '@/utils/formatTime'
 
 // 文件上传相关
-const reportFileList = ref<any[]>([])
-const patientFileList = ref<any[]>([])
+const dataTableFileList = ref<any[]>([])
+const matchTableFileList = ref<any[]>([])
 
 // 激活码相关
 const showActivation = ref(false)
@@ -177,10 +177,10 @@ function getTodayStr() {
 }
 
 // 文件参数设置
-const unifyReportSheet = ref(getTodayStr())
-const unifyReportCol = ref('C')
-const unifyPatientSheet = ref('Sheet1')
-const unifyPatientCol = ref('A')
+const unifiedDataTableSheetName = ref(getTodayStr())
+const unifiedDataTableColumn = ref('C')
+const unifiedMatchTableSheetName = ref('Sheet1')
+const unifiedMatchTableColumn = ref('A')
 
 // 列号选项（A-Z的大写字母）
 const letters = ref([
@@ -200,22 +200,22 @@ const matchError = ref('')
 const loading = ref(false)
 
 // 监听文件变化，自动同步到设置表格
-watch([reportFileList, patientFileList], () => {
+watch([dataTableFileList, matchTableFileList], () => {
   const settings: any[] = []
-  reportFileList.value.forEach(file => {
+  dataTableFileList.value.forEach(file => {
     settings.push({
-      type: '报表',
+      type: '数据表',
       fileName: file.name,
-      sheetName: unifyReportSheet.value,
-      col: unifyReportCol.value
+      sheetName: unifiedDataTableSheetName.value,
+      col: unifiedDataTableColumn.value
     })
   })
-  patientFileList.value.forEach(file => {
+  matchTableFileList.value.forEach(file => {
     settings.push({
-      type: '患者库',
+      type: '匹配表',
       fileName: file.name,
-      sheetName: unifyPatientSheet.value,
-      col: unifyPatientCol.value
+      sheetName: unifiedMatchTableSheetName.value,
+      col: unifiedMatchTableColumn.value
     })
   })
   fileSettings.value = settings
@@ -224,35 +224,35 @@ watch([reportFileList, patientFileList], () => {
 // 应用统一设置到所有文件
 function applyUnifySetting() {
   fileSettings.value.forEach(setting => {
-    if (setting.type === '报表') {
-      setting.sheetName = unifyReportSheet.value
-      setting.col = unifyReportCol.value
+    if (setting.type === '数据表') {
+      setting.sheetName = unifiedDataTableSheetName.value
+      setting.col = unifiedDataTableColumn.value
     } else {
-      setting.sheetName = unifyPatientSheet.value
-      setting.col = unifyPatientCol.value
+      setting.sheetName = unifiedMatchTableSheetName.value
+      setting.col = unifiedMatchTableColumn.value
     }
   })
   ElMessage.success('已应用统一设置')
 }
 
 // 文件上传相关事件
-function handleReportChange(file, fileList) {
-  reportFileList.value = fileList
+function handleDataTableChange(file, fileList) {
+  dataTableFileList.value = fileList
 }
-function handleRemoveReport(file, fileList) {
-  reportFileList.value = fileList
+function handleRemoveDataTable(file, fileList) {
+  dataTableFileList.value = fileList
 }
-function handlePatientChange(file, fileList) {
-  patientFileList.value = fileList.slice(-1) // 只保留最后一个
+function handleMatchTableChange(file, fileList) {
+  matchTableFileList.value = fileList.slice(-1) // 只保留最后一个
 }
-function handleRemovePatient(file, fileList) {
-  patientFileList.value = fileList
+function handleRemoveMatchTable(file, fileList) {
+  matchTableFileList.value = fileList
 }
 
 // 执行匹配
 async function handleMatch() {
-  if (!reportFileList.value.length || !patientFileList.value.length) {
-    ElMessage.error('请上传报表文件和患者库文件')
+  if (!dataTableFileList.value.length || !matchTableFileList.value.length) {
+    ElMessage.error('请上传数据表文件和匹配表文件')
     return
   }
   // 校验参数填写
@@ -268,24 +268,24 @@ async function handleMatch() {
     // 构造FormData
     const formData = new FormData()
     
-    // 添加患者库信息
-    const patientIdx = fileSettings.value.findIndex(f => f.type === '患者库')
-    if (patientIdx !== -1) {
-      formData.append('patientFile', patientFileList.value[0].raw)
-      formData.append('patientSheetName', fileSettings.value[patientIdx].sheetName)
-      formData.append('patientColumnIndex', fileSettings.value[patientIdx].col)
+    // 后端接口仍使用原有字段名，此处仅替换前端展示术语。
+    const matchTableSettingIndex = fileSettings.value.findIndex(f => f.type === '匹配表')
+    if (matchTableSettingIndex !== -1) {
+      formData.append('patientFile', matchTableFileList.value[0].raw)
+      formData.append('patientSheetName', fileSettings.value[matchTableSettingIndex].sheetName)
+      formData.append('patientColumnIndex', fileSettings.value[matchTableSettingIndex].col)
     }
     
     // 添加模糊匹配参数
     formData.append('isFuzzyMatch', isFuzzyMatch.value.toString())
     
-    // 添加报表信息
-    const reportSettings = fileSettings.value.filter(f => f.type === '报表')
-    reportFileList.value.forEach((file, idx) => {
-      if (idx < reportSettings.length) {
+    // 添加数据表信息
+    const dataTableSettings = fileSettings.value.filter(f => f.type === '数据表')
+    dataTableFileList.value.forEach((file, idx) => {
+      if (idx < dataTableSettings.length) {
         formData.append(`reportConfigs[${idx}].reportFile`, file.raw)
-        formData.append(`reportConfigs[${idx}].sheetName`, reportSettings[idx].sheetName)
-        formData.append(`reportConfigs[${idx}].columnIndex`, reportSettings[idx].col)
+        formData.append(`reportConfigs[${idx}].sheetName`, dataTableSettings[idx].sheetName)
+        formData.append(`reportConfigs[${idx}].columnIndex`, dataTableSettings[idx].col)
       }
     })
     

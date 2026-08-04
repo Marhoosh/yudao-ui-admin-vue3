@@ -1,8 +1,8 @@
 import request from '@/config/axios'
 
 /**
- * Excel报表与患者库匹配
- * @param data FormData格式的数据，包含患者库和报表文件
+ * Excel 数据表与匹配表匹配
+ * @param data FormData 格式的数据，包含匹配表和数据表文件
  * @returns 返回匹配结果Excel文件
  */
 
@@ -13,4 +13,3 @@ export const matchExcel = async (data: FormData) => {
     responseType: 'blob' // 关键点
   })
 }
-
